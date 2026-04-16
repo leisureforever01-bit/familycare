@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FamilyCare 家庭健康助手</title>
+<style>
+:root {
+  --primary: #2C7BB6;
+  --primary-light: #EBF4FC;
+  --primary-dark: #1A5A8A;
+  --green: #4CAF87;
+  --green-light: #E8F7F0;
+  --bg: #F2F6FA;
+  --card: #FFFFFF;
+  --text: #1C2B3A;
+  --text-muted: #6B7A8D;
+  --border: #DDE3EA;
+  --danger: #E84855;
+  --danger-light: #FEF0F1;
+  --warning: #F59E0B;
+  --warning-light: #FEF9EC;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 2px 16px rgba(44,123,182,0.09);
+  --shadow-card: 0 1px 6px rgba(0,0,0,0.07);
+  --nav-h: 68px;
+  --header-h: 64px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1.65;
+  max-width: 520px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  position: relative;
+}
+
+/* ── Header ── */
+.app-header {
+  position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 520px;
+  height: var(--header-h);
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px;
+  z-index: 100;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+}
+.app-logo { display: flex; align-items: center; gap: 8px; }
+.app-logo .logo-icon { width: 34px; height: 34px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.app-logo h1 { font-size: 19px; font-weight: 700; color: var(--primary); }
+.header-right { display: flex; align-items: center; gap: 8px; }
+
+.lang-btn {
+  padding: 5px 11px; border-radius: 20px; border: 1.5px solid var(--border);
+  background: transparent; font-size: 13px; font-weight: 600; cursor: pointer;
+  color: var(--text-muted); transition: all 0.2s;
+}
+.lang-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+/* Profile avatar strip in header */
+.profile-strip { display: flex; gap: 6px; align-items: center; }
+.profile-chip {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  border: 2.5px solid transparent;
+  transition: all 0.2s; background: var(--bg); color: var(--text-muted);
+  flex-shrink: 0;
+}
+.profile-chip.active { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+.profile-chip.add-chip { border: 2px dashed var(--border); font-size: 18px; color: var(--text-muted); }
+.profile-chip.add-chip:hover { border-color: var(--primary); color: var(--primary); }
+
+/* ── Bottom Nav ── */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 520px;
+  height: var(--nav-h);
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  display: flex;
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; border: none; background: transparent; cursor: pointer;
+  font-size: 11px; font-weight: 500; color: var(--text-muted);
+  transition: all 0.2s; padding: 8px 4px;
+}
+.nav-btn .nav-icon { font-size: 22px; line-height: 1; }
+.nav-btn.active { color: var(--primary); }
+.nav-btn.active .nav-icon { transform: scale(1.1); }
+
+/* ── Main Content ── */
+#main-content {
+  padding-top: calc(var(--header-h) + 12px);
+  padding-bottom: calc(var(--nav-h) + 16px);
+  min-height: 100dvh;
+}
+
+.page { display: none; padding: 0 14px; }
+.page.active { display: block; }
+
+/* ── Cards ── */
+.card {
+  background: var(--card); border-radius: var(--radius);
+  padding: 18px 16px; margin-bottom: 14px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border);
+}
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.card-title { font-size: 16px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 7px; }
+.card-title .icon { font-size: 18px; }
+
+/* ── Forms ── */
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-size: 14px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+.form-input, .form-textarea, .form-select {
+  width: 100%; padding: 12px 14px;
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 16px; color: var(--text); background: var(--card);
+  font-family: inherit; line-height: 1.5;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(44,123,182,0.1);
+}
+.form-textarea { resize: vertical; min-height: 90px; }
+.form-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236B7A8D' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 12px 20px; border-radius: var(--radius-sm); border: none;
+  font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit;
+  transition: all 0.2s; text-align: center;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-secondary { background: var(--primary-light); color: var(--primary); }
+.btn-secondary:hover { background: #d5eaf8; }
+.btn-danger { background: var(--danger-light); color: var(--danger); }
+.btn-danger:hover { background: #fbd5d8; }
+.btn-ghost { background: transparent; color: var(--text-muted); border: 1.5px solid var(--border); }
+.btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+.btn-full { width: 100%; }
+.btn-sm { padding: 7px 13px; font-size: 14px; border-radius: 8px; }
+
+/* ── Mood / Energy pickers ── */
+.picker-row { display: flex; gap: 8px; }
+.picker-btn {
+  flex: 1; padding: 10px 4px; border-radius: var(--radius-sm);
+  border: 2px solid var(--border); background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  cursor: pointer; transition: all 0.2s; font-family: inherit;
+}
+.picker-btn .pick-emoji { font-size: 22px; line-height: 1; }
+.picker-btn .pick-label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+.picker-btn.selected { border-color: var(--primary); background: var(--primary-light); }
+.picker-btn.selected .pick-label { color: var(--primary); }
+
+/* ── Log History ── */
+.log-item {
+  border-left: 3px solid var(--primary); padding: 12px 14px;
+  background: var(--bg); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-bottom: 10px; cursor: pointer;
+}
+.log-item:hover { background: var(--primary-light); }
+.log-date { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+.log-summary { font-size: 14px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.log-badges { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.badge {
+  padding: 2px 9px; border-radius: 20px; font-size: 12px; font-weight: 600;
+  background: var(--primary-light); color: var(--primary);
+}
+.badge.green { background: var(--green-light); color: var(--green); }
+.badge.warning { background: var(--warning-light); color: var(--warning); }
+.badge.danger { background: var(--danger-light); color: var(--danger); }
+
+/* ── AI Chat ── */
+.chat-container { height: calc(100dvh - var(--header-h) - var(--nav-h) - 110px); display: flex; flex-direction: column; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 4px 0 8px; display: flex; flex-direction: column; gap: 12px; }
+.chat-bubble-wrap { display: flex; align-items: flex-end; gap: 8px; }
+.chat-bubble-wrap.user { flex-direction: row-reverse; }
+.chat-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; background: var(--primary-light); }
+.chat-bubble {
+  max-width: 80%; padding: 11px 14px; border-radius: 18px;
+  font-size: 15px; line-height: 1.6;
+}
+.chat-bubble.ai { background: var(--card); color: var(--text); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+.chat-bubble.user { background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
+.chat-bubble.ai a { color: var(--primary); }
+.disclaimer-note { font-size: 12px; color: var(--text-muted); margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); font-style: italic; }
+.chat-input-area { display: flex; gap: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.chat-input {
+  flex: 1; padding: 11px 14px; border-radius: 22px;
+  border: 1.5px solid var(--border); font-size: 15px; font-family: inherit;
+  resize: none; line-height: 1.4; max-height: 100px; min-height: 44px;
+  overflow-y: auto; background: var(--card);
+}
+.chat-input:focus { outline: none; border-color: var(--primary); }
+.chat-send-btn {
+  width: 44px; height: 44px; border-radius: 50%; border: none;
+  background: var(--primary); color: #fff; font-size: 18px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; align-self: flex-end; transition: all 0.2s;
+}
+.chat-send-btn:hover { background: var(--primary-dark); }
+.chat-send-btn:disabled { background: var(--border); cursor: default; }
+.typing-indicator { display: flex; gap: 4px; align-items: center; padding: 10px 0; }
+.typing-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); animation: bounce 1.2s infinite; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+
+/* ── Family page ── */
+.family-card {
+  background: var(--card); border-radius: var(--radius); padding: 16px;
+  margin-bottom: 12px; border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: var(--shadow-card); cursor: pointer; transition: all 0.2s;
+}
+.family-card:hover { box-shadow: var(--shadow); border-color: var(--primary); }
+.family-card.active-family { border-color: var(--primary); background: var(--primary-light); }
+.family-avatar {
+  width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 800; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--primary) 0%, #52a8e8 100%);
+  color: #fff;
+}
+.family-info { flex: 1; min-width: 0; }
+.family-name { font-size: 17px; font-weight: 700; }
+.family-meta { font-size: 14px; color: var(--text-muted); margin-top: 2px; }
+.family-actions { display: flex; gap: 6px; }
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  z-index: 200; display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-sheet {
+  background: var(--card); border-radius: 24px 24px 0 0;
+  width: 100%; max-width: 520px; max-height: 92dvh; overflow-y: auto;
+  padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0px));
+  transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+}
+.modal-overlay.open .modal-sheet { transform: translateY(0); }
+.modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 18px; }
+.modal-title { font-size: 20px; font-weight: 700; margin-bottom: 18px; }
+
+/* ── Log Detail Modal ── */
+.detail-row { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.detail-chip { padding: 4px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; background: var(--primary-light); color: var(--primary); }
+
+/* ── Empty state ── */
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+.empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state p { font-size: 15px; }
+
+/* ── Section title ── */
+.section-title { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 6px 4px 8px; }
+
+/* ── Alerts / Toasts ── */
+.toast {
+  position: fixed; bottom: calc(var(--nav-h) + 14px); left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--text); color: #fff; padding: 11px 20px; border-radius: 22px;
+  font-size: 14px; font-weight: 500; opacity: 0;
+  transition: all 0.3s; z-index: 300; white-space: nowrap; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── Profile condition tags ── */
+.tag-list { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 4px; }
+.tag {
+  padding: 4px 11px; border-radius: 20px; font-size: 14px;
+  background: var(--primary-light); color: var(--primary); font-weight: 500;
+}
+.tag.med { background: var(--green-light); color: var(--green); }
+.tag.surgery { background: var(--warning-light); color: var(--warning); }
+
+/* ── Info rows in profile view ── */
+.info-row { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.info-row:last-child { border-bottom: none; }
+.info-label { font-size: 14px; color: var(--text-muted); font-weight: 600; flex-shrink: 0; width: 90px; }
+.info-value { font-size: 15px; color: var(--text); flex: 1; }
+
+/* ── API Key Banner ── */
+.api-banner {
+  background: var(--warning-light); border: 1.5px solid var(--warning);
+  border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 14px;
+  font-size: 14px; color: #92680A; display: flex; gap: 8px; align-items: flex-start;
+}
+.api-banner .api-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+/* ── Scrollbar styling ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ── Animations ── */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.page.active { animation: fadeIn 0.25s ease; }
+
+/* ── Log history toggle ── */
+.log-detail-body { margin-top: 10px; display: none; }
+.log-detail-body.open { display: block; }
+.expand-arrow { transition: transform 0.2s; display: inline-block; }
+.log-item.expanded .expand-arrow { transform: rotate(180deg); }
+
+/* ── Chat quick prompts ── */
+.quick-prompts { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 10px; }
+.quick-prompt-btn {
+  padding: 6px 12px; border-radius: 16px; border: 1.5px solid var(--primary);
+  background: var(--primary-light); color: var(--primary); font-size: 13px;
+  font-weight: 500; cursor: pointer; font-family: inherit; transition: all 0.15s;
+  white-space: nowrap;
+}
+.quick-prompt-btn:hover { background: var(--primary); color: #fff; }
+
+/* ── Responsive ── */
+@media (min-width: 521px) {
+  .app-header, .bottom-nav { border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="app-header">
+  <div class="app-logo">
+    <div class="logo-icon">🏥</div>
+    <h1>FamilyCare</h1>
+  </div>
+  <div class="profile-strip" id="profileStrip"></div>
+  <div class="header-right">
+    <button class="lang-btn" id="langToggle" onclick="toggleLang()">EN</button>
+  </div>
+</header>
+
+<!-- Main Content -->
+<div id="main-content">
+
+  <!-- ── PAGE: PROFILE ── -->
+  <div class="page active" id="page-profile">
+    <div id="profileContent"></div>
+  </div>
+
+  <!-- ── PAGE: DAILY LOG ── -->
+  <div class="page" id="page-log">
+    <!-- Log Form -->
+    <div class="card" id="logFormCard">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">📝</span><span data-i18n="logToday"></span></div>
+        <span id="logDateDisplay" style="font-size:13px;color:var(--text-muted);font-weight:600;"></span>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="labelMeals"></label>
+        <textarea class="form-textarea" id="logMeals" rows="3" data-i18n-ph="phMeals"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="labelSymptoms"></label>
+        <textarea class="form-textarea" id="logSymptoms" rows="2" data-i18n-ph="phSymptoms"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="labelMood"></label>
+        <div class="picker-row" id="moodPicker">
+          <button class="picker-btn" data-val="great" onclick="pickMood('great')"><span class="pick-emoji">😄</span><span class="pick-label" data-i18n="moodGreat"></span></button>
+          <button class="picker-btn" data-val="good" onclick="pickMood('good')"><span class="pick-emoji">😊</span><span class="pick-label" data-i18n="moodGood"></span></button>
+          <button class="picker-btn" data-val="okay" onclick="pickMood('okay')"><span class="pick-emoji">😐</span><span class="pick-label" data-i18n="moodOkay"></span></button>
+          <button class="picker-btn" data-val="poor" onclick="pickMood('poor')"><span class="pick-emoji">😔</span><span class="pick-label" data-i18n="moodPoor"></span></button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="labelEnergy"></label>
+        <div class="picker-row" id="energyPicker">
+          <button class="picker-btn" data-val="high" onclick="pickEnergy('high')"><span class="pick-emoji">⚡</span><span class="pick-label" data-i18n="energyHigh"></span></button>
+          <button class="picker-btn" data-val="medium" onclick="pickEnergy('medium')"><span class="pick-emoji">🔋</span><span class="pick-label" data-i18n="energyMed"></span></button>
+          <button class="picker-btn" data-val="low" onclick="pickEnergy('low')"><span class="pick-emoji">😴</span><span class="pick-label" data-i18n="energyLow"></span></button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="labelObs"></label>
+        <textarea class="form-textarea" id="logObs" rows="2" data-i18n-ph="phObs"></textarea>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="saveLog()"><span data-i18n="saveLog"></span></button>
+    </div>
+
+    <!-- Log History -->
+    <div class="section-title" data-i18n="past7days"></div>
+    <div id="logHistory"></div>
+  </div>
+
+  <!-- ── PAGE: AI CHAT ── -->
+  <div class="page" id="page-ai">
+    <div id="apiKeyBanner" style="display:none;">
+      <div class="api-banner">
+        <span class="api-icon">⚠️</span>
+        <div><strong data-i18n="apiKeyNeeded"></strong><br><span data-i18n="apiKeyDesc"></span></div>
+      </div>
+    </div>
+    <div class="chat-container">
+      <div class="chat-messages" id="chatMessages"></div>
+      <div>
+        <div class="quick-prompts" id="quickPrompts"></div>
+        <div class="chat-input-area">
+          <textarea class="chat-input" id="chatInput" rows="1" data-i18n-ph="phChatInput" onkeydown="chatKeydown(event)" oninput="autoResize(this)"></textarea>
+          <button class="chat-send-btn" id="chatSendBtn" onclick="sendChat()">➤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAGE: FAMILY ── -->
+  <div class="page" id="page-family">
+    <div class="section-title" data-i18n="familyMembers"></div>
+    <div id="familyList"></div>
+    <div id="addProfileBtn" style="margin-top:4px;"></div>
+  </div>
+
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-page="profile" onclick="switchPage('profile')">
+    <span class="nav-icon">🩺</span>
+    <span data-i18n="navProfile"></span>
+  </button>
+  <button class="nav-btn" data-page="log" onclick="switchPage('log')">
+    <span class="nav-icon">📝</span>
+    <span data-i18n="navLog"></span>
+  </button>
+  <button class="nav-btn" data-page="ai" onclick="switchPage('ai')">
+    <span class="nav-icon">🤖</span>
+    <span data-i18n="navAI"></span>
+  </button>
+  <button class="nav-btn" data-page="family" onclick="switchPage('family')">
+    <span class="nav-icon">👨‍👩‍👧</span>
+    <span data-i18n="navFamily"></span>
+  </button>
+</nav>
+
+<!-- Modal: Add/Edit Profile -->
+<div class="modal-overlay" id="profileModal" onclick="closeModalOnBg(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="profileModalTitle"></div>
+    <form onsubmit="saveProfile(event)">
+      <div class="form-group">
+        <label class="form-label" data-i18n="fieldName"></label>
+        <input class="form-input" id="pName" required data-i18n-ph="phName">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="fieldAge"></label>
+        <input class="form-input" id="pAge" type="number" min="1" max="130" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="fieldRelation"></label>
+        <input class="form-input" id="pRelation" data-i18n-ph="phRelation">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="fieldConditions"></label>
+        <textarea class="form-textarea" id="pConditions" rows="2" data-i18n-ph="phConditions"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="fieldMeds"></label>
+        <textarea class="form-textarea" id="pMeds" rows="2" data-i18n-ph="phMeds"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="fieldSurgeries"></label>
+        <textarea class="form-textarea" id="pSurgeries" rows="2" data-i18n-ph="phSurgeries"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="fieldDrNotes"></label>
+        <textarea class="form-textarea" id="pDrNotes" rows="3" data-i18n-ph="phDrNotes"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <button type="button" class="btn btn-ghost btn-full" onclick="closeModal('profileModal')" data-i18n="cancel"></button>
+        <button type="submit" class="btn btn-primary btn-full" data-i18n="save"></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Log Detail -->
+<div class="modal-overlay" id="logDetailModal" onclick="closeModalOnBg(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div id="logDetailContent"></div>
+    <button class="btn btn-ghost btn-full" style="margin-top:14px;" onclick="closeModal('logDetailModal')" data-i18n="close"></button>
+  </div>
+</div>
+
+<!-- Modal: API Key Setup -->
+<div class="modal-overlay" id="apiKeyModal" onclick="closeModalOnBg(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" data-i18n="apiKeyModalTitle"></div>
+    <p style="font-size:14px;color:var(--text-muted);margin-bottom:16px;" data-i18n="apiKeyModalDesc"></p>
+    <div class="form-group">
+      <label class="form-label">Gemini API Key</label>
+      <input class="form-input" id="apiKeyInput" type="password" placeholder="AIza...">
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost btn-full" onclick="closeModal('apiKeyModal')" data-i18n="cancel"></button>
+      <button class="btn btn-primary btn-full" onclick="saveApiKey()" data-i18n="save"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  CONSTANTS
+// ═══════════════════════════════════════════════════
+const GEMINI_MODEL = 'gemini-2.5-flash';
+const GEMINI_BASE  = 'https://generativelanguage.googleapis.com/v1beta/models/';
+
+// ═══════════════════════════════════════════════════
+//  i18n
+// ═══════════════════════════════════════════════════
+const T = {
+  zh: {
+    navProfile: '健康檔案', navLog: '每日記錄', navAI: 'AI助理', navFamily: '家庭成員',
+    logToday: '今日健康記錄', labelMeals: '今日飲食', labelSymptoms: '身體症狀',
+    labelMood: '心情', labelEnergy: '體力', labelObs: '其他觀察', saveLog: '儲存記錄',
+    past7days: '過去 7 天記錄',
+    moodGreat: '很好', moodGood: '良好', moodOkay: '普通', moodPoor: '不好',
+    energyHigh: '充沛', energyMed: '一般', energyLow: '疲憊',
+    phMeals: '例如：早餐稀飯加蛋，午餐清蒸魚…', phSymptoms: '例如：輕微頭痛，無其他不適',
+    phObs: '例如：今日走路30分鐘，睡眠良好', phChatInput: '詢問健康相關問題…',
+    familyMembers: '家庭成員', addMember: '＋ 新增成員',
+    profileModalTitle_add: '新增家庭成員', profileModalTitle_edit: '編輯成員資料',
+    fieldName: '姓名', fieldAge: '年齡', fieldRelation: '關係 (例: 媽媽)',
+    fieldConditions: '病史 / 慢性病', fieldMeds: '目前服用藥物',
+    fieldSurgeries: '手術記錄', fieldDrNotes: '醫生備注 / 其他注意事項',
+    phName: '例如：王媽媽', phRelation: '例如：媽媽、爸爸', phConditions: '每行一項，例如：高血壓、糖尿病',
+    phMeds: '例如：降血壓藥每日一顆', phSurgeries: '例如：子宮肌瘤手術（2024年）',
+    phDrNotes: '醫生建議、複診時間…', save: '儲存', cancel: '取消', close: '關閉',
+    edit: '編輯', delete: '刪除', switchTo: '切換',
+    profileView_title: '健康檔案', editProfile: '編輯',
+    conditionsLabel: '病史', medsLabel: '目前藥物', surgLabel: '手術記錄', notesLabel: '醫生備注',
+    noProfile: '尚未建立成員資料', noProfileDesc: '請到「家庭成員」頁面新增', noLogs: '尚無記錄',
+    apiKeyNeeded: '需要 Gemini API Key', apiKeyDesc: '請點此輸入您的 API Key 以啟用 AI 功能',
+    apiKeyModalTitle: '設定 Gemini API Key', apiKeyModalDesc: '您的 API Key 僅儲存在此裝置的本機，不會上傳至任何伺服器。',
+    disclaimer: '※ 以上內容僅供參考，不能取代專業醫療建議。如有疑慮，請諮詢醫生。',
+    aiWelcome: '您好！我是您的家庭健康助理 👋\n我已載入 {name} 的健康資料，可以回答飲食、生活習慣、症狀等相關問題。\n請注意，所有建議僅供參考，不取代專業醫療診斷。',
+    noActiveProfile: '請先選擇或建立一個家庭成員資料。',
+    quickPrompts: ['今日飲食建議', '藥物注意事項', '適合的運動', '血壓管理建議'],
+    deleteConfirm: '確定要刪除此成員資料嗎？此操作無法復原。',
+    todayLabel: '今天', logSaved: '記錄已儲存 ✓', profileSaved: '資料已儲存 ✓',
+    profileDeleted: '成員資料已刪除', ageUnit: '歲', relationLabel: '關係',
+    activeLabel: '目前選中', maxProfiles: '最多支援 4 位成員',
+    moodLabel: '心情', energyLabel: '體力',
+    mealsDetail: '飲食', symptomsDetail: '症狀', obsDetail: '觀察',
+    noMeals: '未記錄', noSymptoms: '無不適', noObs: '無',
+  },
+  en: {
+    navProfile: 'Profile', navLog: 'Daily Log', navAI: 'AI Care', navFamily: 'Family',
+    logToday: "Today's Health Log", labelMeals: "Today's Meals", labelSymptoms: 'Physical Symptoms',
+    labelMood: 'Mood', labelEnergy: 'Energy Level', labelObs: 'Other Observations', saveLog: 'Save Log',
+    past7days: 'Past 7 Days',
+    moodGreat: 'Great', moodGood: 'Good', moodOkay: 'Okay', moodPoor: 'Poor',
+    energyHigh: 'High', energyMed: 'Normal', energyLow: 'Tired',
+    phMeals: 'e.g. Breakfast: congee with egg, Lunch: steamed fish…',
+    phSymptoms: 'e.g. Mild headache, no other issues',
+    phObs: 'e.g. 30-min walk, good sleep',
+    phChatInput: 'Ask a health question…',
+    familyMembers: 'Family Members', addMember: '+ Add Member',
+    profileModalTitle_add: 'Add Family Member', profileModalTitle_edit: 'Edit Profile',
+    fieldName: 'Name', fieldAge: 'Age', fieldRelation: 'Relationship (e.g. Mom)',
+    fieldConditions: 'Medical Conditions', fieldMeds: 'Current Medications',
+    fieldSurgeries: 'Surgery History', fieldDrNotes: "Doctor's Notes",
+    phName: 'e.g. Mom', phRelation: 'e.g. Mom, Dad, Grandma',
+    phConditions: 'One per line, e.g. Hypertension, Diabetes',
+    phMeds: 'e.g. Blood pressure pill, once daily',
+    phSurgeries: 'e.g. Uterine fibroid surgery (2024)',
+    phDrNotes: 'Doctor recommendations, follow-up dates…',
+    save: 'Save', cancel: 'Cancel', close: 'Close',
+    edit: 'Edit', delete: 'Delete', switchTo: 'Switch',
+    profileView_title: 'Health Profile', editProfile: 'Edit',
+    conditionsLabel: 'Conditions', medsLabel: 'Medications', surgLabel: 'Surgeries', notesLabel: "Doctor's Notes",
+    noProfile: 'No profile yet', noProfileDesc: 'Go to Family tab to add a member',
+    noLogs: 'No logs yet',
+    apiKeyNeeded: 'Gemini API Key Required',
+    apiKeyDesc: 'Tap here to enter your API Key to enable AI features',
+    apiKeyModalTitle: 'Set Gemini API Key',
+    apiKeyModalDesc: 'Your API Key is stored locally on this device only and is never uploaded.',
+    disclaimer: '⚠ For reference only. This does not replace professional medical advice. Consult your doctor for any concerns.',
+    aiWelcome: "Hello! I'm your Family Health AI Assistant 👋\nI've loaded {name}'s health profile and can answer questions about diet, lifestyle, symptoms, and more.\nAll suggestions are for reference only and do not replace professional medical advice.",
+    noActiveProfile: 'Please select or create a family member profile first.',
+    quickPrompts: ['Diet tips today', 'Medication reminders', 'Exercise suggestions', 'Blood pressure tips'],
+    deleteConfirm: 'Delete this member profile? This cannot be undone.',
+    todayLabel: 'Today', logSaved: 'Log saved ✓', profileSaved: 'Profile saved ✓',
+    profileDeleted: 'Profile deleted', ageUnit: ' yrs', relationLabel: 'Relation',
+    activeLabel: 'Active', maxProfiles: 'Max 4 profiles supported',
+    moodLabel: 'Mood', energyLabel: 'Energy',
+    mealsDetail: 'Meals', symptomsDetail: 'Symptoms', obsDetail: 'Notes',
+    noMeals: 'Not recorded', noSymptoms: 'None', noObs: 'None',
+  }
+};
+
+// ═══════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════
+let state = {
+  lang: 'zh',
+  activeProfileId: null,
+  currentPage: 'profile',
+  selectedMood: null,
+  selectedEnergy: null,
+  editingProfileId: null,
+};
+
+// ═══════════════════════════════════════════════════
+//  STORAGE HELPERS
+// ═══════════════════════════════════════════════════
+function ls(key, fallback) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  catch(e) { return fallback; }
+}
+function lsSave(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+function getProfiles()             { return ls('fc_profiles', []); }
+function saveProfiles(p)           { lsSave('fc_profiles', p); }
+function getLogs(pid)              { return ls(`fc_logs_${pid}`, []); }
+function saveLogs(pid, logs)       { lsSave(`fc_logs_${pid}`, logs); }
+function getChatHistory(pid)       { return ls(`fc_chat_${pid}`, []); }
+function saveChatHistory(pid, h)   { lsSave(`fc_chat_${pid}`, h); }
+function getApiKey()               { return ls('fc_api_key', ''); }
+function setApiKey(k)              { lsSave('fc_api_key', k); }
+function getAppState()             { return ls('fc_app_state', { lang: 'zh', activeProfileId: null }); }
+function saveAppState()            { lsSave('fc_app_state', { lang: state.lang, activeProfileId: state.activeProfileId }); }
+
+function t(key) { return (T[state.lang] && T[state.lang][key]) || T.zh[key] || key; }
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+function avatarInitial(name) {
+  if (!name) return '?';
+  return name.trim().slice(-1) || name.trim()[0] || '?';
+}
+
+const AVATAR_COLORS = [
+  'linear-gradient(135deg,#2C7BB6,#52a8e8)',
+  'linear-gradient(135deg,#4CAF87,#82d8b5)',
+  'linear-gradient(135deg,#9C5FB5,#c48cd9)',
+  'linear-gradient(135deg,#E07B39,#f0ad7a)',
+];
+
+// ═══════════════════════════════════════════════════
+//  i18n RENDERING
+// ═══════════════════════════════════════════════════
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (T[state.lang][key]) el.textContent = T[state.lang][key];
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    const key = el.getAttribute('data-i18n-ph');
+    if (T[state.lang][key]) el.placeholder = T[state.lang][key];
+  });
+  document.getElementById('langToggle').textContent = state.lang === 'zh' ? 'EN' : '中';
+  document.documentElement.lang = state.lang === 'zh' ? 'zh-TW' : 'en';
+  // Update log date
+  const logDateEl = document.getElementById('logDateDisplay');
+  if (logDateEl) logDateEl.textContent = formatDate(new Date());
+}
+
+function toggleLang() {
+  state.lang = state.lang === 'zh' ? 'en' : 'zh';
+  saveAppState();
+  applyI18n();
+  renderAll();
+}
+
+function formatDate(d) {
+  const opts = state.lang === 'zh'
+    ? { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' }
+    : { year: 'numeric', month: 'short', day: 'numeric', weekday: 'short' };
+  return new Date(d).toLocaleDateString(state.lang === 'zh' ? 'zh-TW' : 'en-US', opts);
+}
+
+function formatDateShort(d) {
+  return new Date(d).toLocaleDateString(state.lang === 'zh' ? 'zh-TW' : 'en-US', { month: 'short', day: 'numeric' });
+}
+
+// ═══════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════
+function switchPage(page) {
+  state.currentPage = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+  const el = document.getElementById(`page-${page}`);
+  if (el) el.classList.add('active');
+  if (page === 'log') renderLogPage();
+  if (page === 'ai') renderChatPage();
+  if (page === 'family') renderFamilyPage();
+  if (page === 'profile') renderProfilePage();
+}
+
+// ═══════════════════════════════════════════════════
+//  PROFILE STRIP (header)
+// ═══════════════════════════════════════════════════
+function renderProfileStrip() {
+  const profiles = getProfiles();
+  const strip = document.getElementById('profileStrip');
+  strip.innerHTML = '';
+  profiles.forEach((p, i) => {
+    const btn = document.createElement('button');
+    btn.className = `profile-chip${p.id === state.activeProfileId ? ' active' : ''}`;
+    btn.title = p.name;
+    btn.style.background = p.id === state.activeProfileId ? '' : AVATAR_COLORS[i % 4].replace('linear-gradient(135deg,','').split(',')[0].replace('#','var(--bg)');
+    btn.textContent = avatarInitial(p.name);
+    btn.onclick = () => setActiveProfile(p.id);
+    strip.appendChild(btn);
+  });
+  if (profiles.length < 4) {
+    const add = document.createElement('button');
+    add.className = 'profile-chip add-chip';
+    add.title = t('addMember');
+    add.textContent = '+';
+    add.onclick = () => openProfileModal(null);
+    strip.appendChild(add);
+  }
+}
+
+function setActiveProfile(id) {
+  state.activeProfileId = id;
+  saveAppState();
+  renderProfileStrip();
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════
+//  PROFILE PAGE
+// ═══════════════════════════════════════════════════
+function renderProfilePage() {
+  const profiles = getProfiles();
+  const container = document.getElementById('profileContent');
+  if (!profiles.length) {
+    container.innerHTML = `
+      <div class="empty-state" style="margin-top:60px;">
+        <div class="empty-icon">👨‍👩‍👧</div>
+        <p><strong>${t('noProfile')}</strong></p>
+        <p style="margin-top:6px;font-size:14px;">${t('noProfileDesc')}</p>
+        <button class="btn btn-primary" style="margin-top:20px;" onclick="switchPage('family')">${t('addMember')}</button>
+      </div>`;
+    return;
+  }
+  const p = profiles.find(x => x.id === state.activeProfileId) || profiles[0];
+  if (!state.activeProfileId) setActiveProfile(p.id);
+  const idx = profiles.findIndex(x => x.id === p.id);
+
+  container.innerHTML = `
+    <div class="card" style="border-top:4px solid var(--primary);">
+      <div class="card-header">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;background:${AVATAR_COLORS[idx % 4]};flex-shrink:0;">
+            ${avatarInitial(p.name)}
+          </div>
+          <div>
+            <div style="font-size:20px;font-weight:800;">${esc(p.name)}</div>
+            <div style="font-size:14px;color:var(--text-muted);">${esc(p.relation || '')}${p.relation ? ' · ' : ''}${p.age}${t('ageUnit')}</div>
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="openProfileModal('${p.id}')">${t('editProfile')}</button>
+      </div>
+
+      ${p.conditions ? `
+      <div class="info-row">
+        <div class="info-label">🏥 ${t('conditionsLabel')}</div>
+        <div class="info-value"><div class="tag-list">${p.conditions.split('\n').filter(Boolean).map(c => `<span class="tag">${esc(c.trim())}</span>`).join('')}</div></div>
+      </div>` : ''}
+
+      ${p.medications ? `
+      <div class="info-row">
+        <div class="info-label">💊 ${t('medsLabel')}</div>
+        <div class="info-value"><div class="tag-list">${p.medications.split('\n').filter(Boolean).map(m => `<span class="tag med">${esc(m.trim())}</span>`).join('')}</div></div>
+      </div>` : ''}
+
+      ${p.surgeries ? `
+      <div class="info-row">
+        <div class="info-label">🔬 ${t('surgLabel')}</div>
+        <div class="info-value"><div class="tag-list">${p.surgeries.split('\n').filter(Boolean).map(s => `<span class="tag surgery">${esc(s.trim())}</span>`).join('')}</div></div>
+      </div>` : ''}
+
+      ${p.drNotes ? `
+      <div class="info-row">
+        <div class="info-label">📋 ${t('notesLabel')}</div>
+        <div class="info-value" style="white-space:pre-wrap;">${esc(p.drNotes)}</div>
+      </div>` : ''}
+    </div>
+
+    <div style="display:flex;gap:10px;margin-bottom:14px;">
+      <button class="btn btn-secondary btn-full" onclick="switchPage('log')">📝 ${t('navLog')}</button>
+      <button class="btn btn-primary btn-full" onclick="switchPage('ai')">🤖 ${t('navAI')}</button>
+    </div>
+
+    ${renderRecentLogSummary(p.id)}
+  `;
+}
+
+function renderRecentLogSummary(pid) {
+  const logs = getLogs(pid).slice(-3).reverse();
+  if (!logs.length) return `<div class="card"><div class="card-title" style="color:var(--text-muted);font-size:15px;">📊 ${t('noLogs')}</div></div>`;
+  const items = logs.map(l => `
+    <div class="log-item" onclick="showLogDetail('${l.id}', '${pid}')">
+      <div class="log-date">${formatDate(l.date)}</div>
+      <div class="log-summary">${esc(l.meals || t('noMeals'))}</div>
+      <div class="log-badges">
+        ${moodBadge(l.mood)}
+        ${energyBadge(l.energy)}
+      </div>
+    </div>`).join('');
+  return `<div class="card"><div class="card-header"><div class="card-title"><span class="icon">📊</span>${t('past7days')}</div></div>${items}</div>`;
+}
+
+// ═══════════════════════════════════════════════════
+//  LOG PAGE
+// ═══════════════════════════════════════════════════
+function renderLogPage() {
+  if (!state.activeProfileId) return;
+  document.getElementById('logDateDisplay').textContent = formatDate(new Date());
+  renderLogHistory();
+}
+
+function pickMood(val) {
+  state.selectedMood = val;
+  document.querySelectorAll('#moodPicker .picker-btn').forEach(b => b.classList.toggle('selected', b.dataset.val === val));
+}
+function pickEnergy(val) {
+  state.selectedEnergy = val;
+  document.querySelectorAll('#energyPicker .picker-btn').forEach(b => b.classList.toggle('selected', b.dataset.val === val));
+}
+
+function saveLog() {
+  const pid = state.activeProfileId;
+  if (!pid) { showToast(t('noActiveProfile')); return; }
+  const today = new Date().toISOString().split('T')[0];
+  const meals    = document.getElementById('logMeals').value.trim();
+  const symptoms = document.getElementById('logSymptoms').value.trim();
+  const obs      = document.getElementById('logObs').value.trim();
+  const mood     = state.selectedMood;
+  const energy   = state.selectedEnergy;
+
+  const logs = getLogs(pid).filter(l => l.date !== today);
+  logs.push({ id: uid(), profileId: pid, date: today, meals, symptoms, mood, energy, observations: obs, createdAt: Date.now() });
+  saveLogs(pid, logs);
+
+  document.getElementById('logMeals').value = '';
+  document.getElementById('logSymptoms').value = '';
+  document.getElementById('logObs').value = '';
+  state.selectedMood = null; state.selectedEnergy = null;
+  document.querySelectorAll('.picker-btn').forEach(b => b.classList.remove('selected'));
+  showToast(t('logSaved'));
+  renderLogHistory();
+}
+
+function renderLogHistory() {
+  const pid = state.activeProfileId;
+  const container = document.getElementById('logHistory');
+  if (!pid) { container.innerHTML = ''; return; }
+
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 6);
+  const logs = getLogs(pid)
+    .filter(l => new Date(l.date) >= cutoff)
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  if (!logs.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><p>${t('noLogs')}</p></div>`;
+    return;
+  }
+  container.innerHTML = logs.map(l => `
+    <div class="log-item" onclick="showLogDetail('${l.id}', '${pid}')">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="log-date">${formatDate(l.date)}</div>
+        <span style="font-size:13px;color:var(--text-muted);">▼</span>
+      </div>
+      <div class="log-summary">${esc((l.meals || t('noMeals')).substring(0, 60))}${(l.meals || '').length > 60 ? '…' : ''}</div>
+      <div class="log-badges">${moodBadge(l.mood)}${energyBadge(l.energy)}</div>
+    </div>`).join('');
+}
+
+function showLogDetail(logId, pid) {
+  const log = getLogs(pid).find(l => l.id === logId);
+  if (!log) return;
+  const container = document.getElementById('logDetailContent');
+  container.innerHTML = `
+    <div style="font-size:18px;font-weight:700;margin-bottom:14px;">📅 ${formatDate(log.date)}</div>
+    <div class="detail-row">
+      ${log.mood    ? `<span class="detail-chip">${t('moodLabel')}: ${moodEmoji(log.mood)} ${t('mood'+cap(log.mood))}</span>` : ''}
+      ${log.energy  ? `<span class="detail-chip">${t('energyLabel')}: ${energyEmoji(log.energy)} ${t('energy'+cap(log.energy))}</span>` : ''}
+    </div>
+    <div class="info-row"><div class="info-label">🍽 ${t('mealsDetail')}</div><div class="info-value" style="white-space:pre-wrap;">${esc(log.meals || t('noMeals'))}</div></div>
+    <div class="info-row"><div class="info-label">🩺 ${t('symptomsDetail')}</div><div class="info-value" style="white-space:pre-wrap;">${esc(log.symptoms || t('noSymptoms'))}</div></div>
+    <div class="info-row"><div class="info-label">📝 ${t('obsDetail')}</div><div class="info-value" style="white-space:pre-wrap;">${esc(log.observations || t('noObs'))}</div></div>
+  `;
+  openModal('logDetailModal');
+}
+
+function moodBadge(val) {
+  if (!val) return '';
+  const cls = val === 'great' || val === 'good' ? 'green' : val === 'poor' ? 'danger' : '';
+  return `<span class="badge ${cls}">${moodEmoji(val)} ${t('mood'+cap(val))}</span>`;
+}
+function energyBadge(val) {
+  if (!val) return '';
+  const cls = val === 'high' ? 'green' : val === 'low' ? 'warning' : '';
+  return `<span class="badge ${cls}">${energyEmoji(val)} ${t('energy'+cap(val))}</span>`;
+}
+function moodEmoji(v)   { return {great:'😄',good:'😊',okay:'😐',poor:'😔'}[v]||''; }
+function energyEmoji(v) { return {high:'⚡',medium:'🔋',low:'😴'}[v]||''; }
+function cap(s)         { return s ? s[0].toUpperCase() + s.slice(1) : ''; }
+
+// ═══════════════════════════════════════════════════
+//  FAMILY PAGE
+// ═══════════════════════════════════════════════════
+function renderFamilyPage() {
+  const profiles = getProfiles();
+  const list = document.getElementById('familyList');
+  const addBtn = document.getElementById('addProfileBtn');
+
+  if (!profiles.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">👨‍👩‍👧</div><p>${t('noProfile')}</p></div>`;
+  } else {
+    list.innerHTML = profiles.map((p, i) => `
+      <div class="family-card${p.id === state.activeProfileId ? ' active-family' : ''}" onclick="setActiveProfile('${p.id}');switchPage('profile');">
+        <div class="family-avatar" style="background:${AVATAR_COLORS[i % 4]}">${avatarInitial(p.name)}</div>
+        <div class="family-info">
+          <div class="family-name">${esc(p.name)}</div>
+          <div class="family-meta">${p.relation ? esc(p.relation) + ' · ' : ''}${p.age}${t('ageUnit')}${p.id === state.activeProfileId ? ' · ✓ '+t('activeLabel') : ''}</div>
+        </div>
+        <div class="family-actions" onclick="event.stopPropagation()">
+          <button class="btn btn-secondary btn-sm" onclick="openProfileModal('${p.id}')">${t('edit')}</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteProfile('${p.id}')">${t('delete')}</button>
+        </div>
+      </div>`).join('');
+  }
+
+  if (profiles.length < 4) {
+    addBtn.innerHTML = `<button class="btn btn-primary btn-full" onclick="openProfileModal(null)">＋ ${t('addMember')}</button>`;
+  } else {
+    addBtn.innerHTML = `<p style="text-align:center;font-size:14px;color:var(--text-muted);padding:10px;">${t('maxProfiles')}</p>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  PROFILE MODAL
+// ═══════════════════════════════════════════════════
+function openProfileModal(id) {
+  state.editingProfileId = id;
+  const profiles = getProfiles();
+  const p = id ? profiles.find(x => x.id === id) : null;
+
+  document.getElementById('profileModalTitle').textContent = p ? t('profileModalTitle_edit') : t('profileModalTitle_add');
+  document.getElementById('pName').value       = p?.name        || '';
+  document.getElementById('pAge').value        = p?.age         || '';
+  document.getElementById('pRelation').value   = p?.relation    || '';
+  document.getElementById('pConditions').value = p?.conditions  || '';
+  document.getElementById('pMeds').value       = p?.medications || '';
+  document.getElementById('pSurgeries').value  = p?.surgeries   || '';
+  document.getElementById('pDrNotes').value    = p?.drNotes     || '';
+  applyI18n(); // refresh placeholders
+  openModal('profileModal');
+}
+
+function saveProfile(e) {
+  e.preventDefault();
+  const profiles = getProfiles();
+  const existing = state.editingProfileId ? profiles.find(x => x.id === state.editingProfileId) : null;
+  const profile = {
+    id:         existing?.id || uid(),
+    name:       document.getElementById('pName').value.trim(),
+    age:        parseInt(document.getElementById('pAge').value) || 0,
+    relation:   document.getElementById('pRelation').value.trim(),
+    conditions: document.getElementById('pConditions').value.trim(),
+    medications:document.getElementById('pMeds').value.trim(),
+    surgeries:  document.getElementById('pSurgeries').value.trim(),
+    drNotes:    document.getElementById('pDrNotes').value.trim(),
+    createdAt:  existing?.createdAt || Date.now(),
+  };
+  if (existing) {
+    const idx = profiles.findIndex(x => x.id === existing.id);
+    profiles[idx] = profile;
+  } else {
+    profiles.push(profile);
+  }
+  saveProfiles(profiles);
+  if (!state.activeProfileId) setActiveProfile(profile.id);
+  closeModal('profileModal');
+  showToast(t('profileSaved'));
+  renderAll();
+  // clear chat context for this profile since data changed
+  if (state.editingProfileId) saveChatHistory(profile.id, []);
+}
+
+function deleteProfile(id) {
+  if (!confirm(t('deleteConfirm'))) return;
+  const profiles = getProfiles().filter(p => p.id !== id);
+  saveProfiles(profiles);
+  if (state.activeProfileId === id) {
+    state.activeProfileId = profiles.length ? profiles[0].id : null;
+    saveAppState();
+  }
+  showToast(t('profileDeleted'));
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════
+//  AI CHAT
+// ═══════════════════════════════════════════════════
+function renderChatPage() {
+  const pid = state.activeProfileId;
+  const profiles = getProfiles();
+  const profile = pid ? profiles.find(p => p.id === pid) : null;
+
+  // API key banner
+  const apiKey = getApiKey();
+  const banner = document.getElementById('apiKeyBanner');
+  if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY') {
+    banner.style.display = 'block';
+    banner.innerHTML = `<div class="api-banner" onclick="openModal('apiKeyModal')" style="cursor:pointer;">
+      <span class="api-icon">⚠️</span>
+      <div><strong>${t('apiKeyNeeded')}</strong><br><span>${t('apiKeyDesc')}</span></div>
+    </div>`;
+  } else {
+    banner.style.display = 'none';
+  }
+
+  // Quick prompts
+  const qp = document.getElementById('quickPrompts');
+  qp.innerHTML = t('quickPrompts').map(q => `<button class="quick-prompt-btn" onclick="sendQuickPrompt('${esc(q)}')">${esc(q)}</button>`).join('');
+
+  // Chat history
+  const history = getChatHistory(pid);
+  const messagesEl = document.getElementById('chatMessages');
+
+  if (!profile) {
+    messagesEl.innerHTML = `<div class="empty-state"><div class="empty-icon">🤖</div><p>${t('noActiveProfile')}</p></div>`;
+    return;
+  }
+
+  if (!history.length) {
+    const welcome = t('aiWelcome').replace('{name}', profile.name);
+    const initHistory = [{ role: 'model', text: welcome }];
+    saveChatHistory(pid, initHistory);
+    renderChatMessages(initHistory);
+  } else {
+    renderChatMessages(history);
+  }
+  scrollChatToBottom();
+}
+
+function renderChatMessages(history) {
+  const el = document.getElementById('chatMessages');
+  el.innerHTML = history.map(m => chatBubble(m)).join('');
+}
+
+function chatBubble(msg) {
+  const isUser = msg.role === 'user';
+  const content = isUser ? esc(msg.text) : formatAiText(msg.text);
+  const disclaimer = (!isUser && msg.showDisclaimer !== false) ? `<div class="disclaimer-note">${t('disclaimer')}</div>` : '';
+  return `
+    <div class="chat-bubble-wrap ${isUser ? 'user' : ''}">
+      ${!isUser ? '<div class="chat-avatar">🤖</div>' : ''}
+      <div class="chat-bubble ${isUser ? 'user' : 'ai'}">${content}${disclaimer}</div>
+      ${isUser ? '<div class="chat-avatar" style="background:var(--green-light);">👤</div>' : ''}
+    </div>`;
+}
+
+function formatAiText(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^### (.+)$/gm, '<strong style="font-size:15px;">$1</strong>')
+    .replace(/^## (.+)$/gm,  '<strong style="font-size:16px;">$1</strong>')
+    .replace(/^# (.+)$/gm,   '<strong style="font-size:17px;">$1</strong>')
+    .replace(/^\* (.+)$/gm,  '• $1')
+    .replace(/\n/g, '<br>');
+}
+
+function scrollChatToBottom() {
+  const el = document.getElementById('chatMessages');
+  if (el) setTimeout(() => el.scrollTop = el.scrollHeight, 50);
+}
+
+function chatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+}
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+function sendQuickPrompt(text) { document.getElementById('chatInput').value = text; sendChat(); }
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const pid = state.activeProfileId;
+  if (!pid) { showToast(t('noActiveProfile')); return; }
+
+  const apiKey = getApiKey();
+  if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY') { openModal('apiKeyModal'); return; }
+
+  input.value = '';
+  input.style.height = 'auto';
+
+  const history = getChatHistory(pid);
+  history.push({ role: 'user', text });
+  saveChatHistory(pid, history);
+  renderChatMessages(history);
+  scrollChatToBottom();
+
+  // Add typing indicator
+  const messagesEl = document.getElementById('chatMessages');
+  const typing = document.createElement('div');
+  typing.id = 'typingIndicator';
+  typing.className = 'chat-bubble-wrap';
+  typing.innerHTML = `<div class="chat-avatar">🤖</div><div class="chat-bubble ai"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+  messagesEl.appendChild(typing);
+  scrollChatToBottom();
+
+  document.getElementById('chatSendBtn').disabled = true;
+
+  try {
+    const profile = getProfiles().find(p => p.id === pid);
+    const recentLogs = getLogs(pid).slice(-7);
+    const aiResponse = await callGemini(apiKey, profile, recentLogs, history.slice(0, -1), text);
+    history.push({ role: 'model', text: aiResponse });
+    saveChatHistory(pid, history);
+  } catch (err) {
+    history.push({ role: 'model', text: `❌ ${err.message || 'API error'}`, showDisclaimer: false });
+    saveChatHistory(pid, history);
+  }
+
+  typing.remove();
+  document.getElementById('chatSendBtn').disabled = false;
+  renderChatMessages(getChatHistory(pid));
+  scrollChatToBottom();
+}
+
+function buildSystemPrompt(profile, logs) {
+  const lang = state.lang;
+  const logText = logs.length
+    ? logs.map(l => `[${l.date}] ${t('mealsDetail')}: ${l.meals||'-'} | ${t('symptomsDetail')}: ${l.symptoms||'-'} | ${t('moodLabel')}: ${moodEmoji(l.mood)||'-'} | ${t('obsDetail')}: ${l.observations||'-'}`).join('\n')
+    : (lang === 'zh' ? '（暫無記錄）' : '(No logs yet)');
+
+  if (lang === 'zh') {
+    return `你是一位有愛心、專業的家庭健康助理。你正在協助家庭照護人員管理家人的健康。
+
+被照護者的健康資料：
+姓名：${profile.name}，${profile.age} 歲，${profile.relation || ''}
+病史：${profile.conditions || '未記錄'}
+目前藥物：${profile.medications || '未記錄'}
+手術記錄：${profile.surgeries || '無'}
+醫生備注：${profile.drNotes || '無'}
+
+最近 7 天的健康記錄：
+${logText}
+
+請根據以上資料回答問題。回應要：
+1. 以繁體中文回答
+2. 具體、實用、易於理解
+3. 考慮患者的具體病史和用藥
+4. 如有異常症狀需要提醒照護人員注意
+5. 每次回應最後必須加上免責聲明：「※ 以上內容僅供參考，不能取代專業醫療建議。如有疑慮，請諮詢醫生。」`;
+  } else {
+    return `You are a caring and professional family health AI assistant, helping a caregiver manage their loved one's health.
+
+Health profile of the person being cared for:
+Name: ${profile.name}, Age: ${profile.age}, Relation: ${profile.relation || ''}
+Medical conditions: ${profile.conditions || 'Not recorded'}
+Current medications: ${profile.medications || 'Not recorded'}
+Surgery history: ${profile.surgeries || 'None'}
+Doctor's notes: ${profile.drNotes || 'None'}
+
+Recent 7-day health logs:
+${logText}
+
+Please answer questions based on the above data. Your responses should be:
+1. In English
+2. Specific, practical, and easy to understand
+3. Take into account the person's specific medical history and medications
+4. Alert the caregiver about any concerning symptoms
+5. Always end with: "⚠ For reference only. This does not replace professional medical advice. Consult your doctor for any concerns."`;
+  }
+}
+
+async function callGemini(apiKey, profile, logs, priorHistory, userText) {
+  const url = `${GEMINI_BASE}${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+  const systemPrompt = buildSystemPrompt(profile, logs);
+
+  // Build Gemini conversation history (exclude welcome msg which is not from API)
+  const contents = priorHistory
+    .filter(m => m.role === 'user' || (m.role === 'model' && !m.isWelcome))
+    .map(m => ({ role: m.role, parts: [{ text: m.text }] }));
+
+  contents.push({ role: 'user', parts: [{ text: userText }] });
+
+  const body = {
+    system_instruction: { parts: [{ text: systemPrompt }] },
+    contents,
+    generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+  };
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `HTTP ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data?.candidates?.[0]?.content?.parts?.[0]?.text || '(No response)';
+}
+
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) return;
+  setApiKey(key);
+  closeModal('apiKeyModal');
+  renderChatPage();
+  showToast('API Key saved ✓');
+}
+
+// ═══════════════════════════════════════════════════
+//  MODALS
+// ═══════════════════════════════════════════════════
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+function closeModalOnBg(e) {
+  if (e.target.classList.contains('modal-overlay')) closeModal(e.target.id);
+}
+
+// ═══════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ═══════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ═══════════════════════════════════════════════════
+//  RENDER ALL
+// ═══════════════════════════════════════════════════
+function renderAll() {
+  renderProfileStrip();
+  const page = state.currentPage;
+  if (page === 'profile') renderProfilePage();
+  else if (page === 'log') renderLogPage();
+  else if (page === 'ai') renderChatPage();
+  else if (page === 'family') renderFamilyPage();
+}
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+function init() {
+  // Restore state
+  const saved = getAppState();
+  state.lang = saved.lang || 'zh';
+  state.activeProfileId = saved.activeProfileId || null;
+
+  // Seed sample profile if first run
+  if (!getProfiles().length) {
+    const sampleId = uid();
+    const sampleProfile = {
+      id: sampleId,
+      name: state.lang === 'zh' ? '媽媽' : 'Mom',
+      age: 70,
+      relation: state.lang === 'zh' ? '媽媽' : 'Mom',
+      conditions: state.lang === 'zh'
+        ? '高膽固醇\n輕度甲狀腺機能亢進\n輕度高血壓\n子宮肌瘤術後康復中'
+        : 'High cholesterol\nMild hyperthyroidism\nMild hypertension\nPost uterine fibroid surgery recovery',
+      medications: state.lang === 'zh'
+        ? '降血壓藥（每日一顆）\n降膽固醇藥\n甲狀腺藥物（低劑量）'
+        : 'Blood pressure medication (once daily)\nCholesterol-lowering medication\nThyroid medication (low dose)',
+      surgeries: state.lang === 'zh'
+        ? '子宮肌瘤切除手術（2024年，康復中）'
+        : 'Uterine fibroid removal surgery (2024, in recovery)',
+      drNotes: state.lang === 'zh'
+        ? '需定期複診追蹤甲狀腺及膽固醇指數。飲食注意低油低鹽，避免生冷食物。術後避免劇烈運動。'
+        : 'Regular follow-ups for thyroid and cholesterol. Low-fat, low-salt diet. Avoid cold/raw foods. No vigorous exercise post-surgery.',
+      createdAt: Date.now(),
+    };
+    saveProfiles([sampleProfile]);
+    state.activeProfileId = sampleId;
+    saveAppState();
+  }
+
+  // Set active profile if not set
+  if (!state.activeProfileId) {
+    const profiles = getProfiles();
+    if (profiles.length) {
+      state.activeProfileId = profiles[0].id;
+      saveAppState();
+    }
+  }
+
+  // Seed API key placeholder if not set
+  if (!getApiKey()) setApiKey('YOUR_GEMINI_API_KEY');
+
+  applyI18n();
+  renderAll();
+}
+
+init();
+</script>
+</body>
+</html>
